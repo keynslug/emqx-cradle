@@ -29,6 +29,10 @@ services:
     networks:
       emqx-bridge:
         aliases: [node1.emqx.dev]
+    healthcheck:
+      test: emqx_ctl status
+      interval: 8s
+      retries: 5
 
   emqx2:
     <<: *emqx-node
@@ -73,3 +77,27 @@ services:
     networks:
       emqx-bridge:
         aliases: [node5.emqx.dev]
+
+  emqx-init:
+    image: "registry.gitlab.com/gitlab-ci-utils/curl-jq:1.1.0"
+    restart: "on-failure"
+    depends_on:
+      emqx1: {condition: service_healthy}
+      emqx2: {condition: service_healthy}
+      emqx3: {condition: service_healthy}
+      emqx4: {condition: service_healthy}
+      emqx5: {condition: service_healthy}
+    command:
+      - /bin/bash
+      - -c
+      - |
+        curl -sSf 'http://emqx1:18083/api/v5/login' \
+          -H 'Authorization: Bearer undefined' \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"username":"admin","password":"public"}' > login.json
+        curl -sSf 'http://emqx1:18083/api/v5/users/admin/change_pwd' \
+          -H "Authorization: Bearer $(cat login.json | jq -r .token)" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"new_pwd":"${EMQX_ADMIN_PASSWORD}","old_pwd":"public"}'
+    networks:
+      - emqx-bridge
