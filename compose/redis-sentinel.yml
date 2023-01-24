@@ -43,6 +43,7 @@ services:
     image: docker.io/bitnami/redis-sentinel:${REDIS_TAG}
     environment:
       REDIS_MASTER_HOST: "redis-master"
+      REDIS_MASTER_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
       REDIS_MASTER_PASSWORD: "${REDIS_PASSWORD}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
       REDIS_SENTINEL_PORT_NUMBER: "${REDIS_SENTINEL_PORT_NUMBER}"

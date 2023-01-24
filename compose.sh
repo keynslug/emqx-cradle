@@ -68,7 +68,8 @@ case "${CONFIG_REDIS}" in
     COMPOSE_CONFIGS+=("-f compose/redis-cluster.yml") ;
     EMQX_CONFIGS+=("config/bridge-redis-cluster.conf") ;;
   sentinel )
-    COMPOSE_CONFIGS+=("-f compose/redis-sentinel.yml") ;;
+    COMPOSE_CONFIGS+=("-f compose/redis-sentinel.yml") ;
+    EMQX_CONFIGS+=("config/bridge-redis-sentinel-tls.conf") ;;
   * )
     usage ;;
 esac
