@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+
+  emqx1: &emqx-node
+    image: "docker.io/emqx/emqx-enterprise:${EMQX_EE_VERSION}"
+    environment: &emqx-node-env
+      EMQX_NAME: "emqx"
+      EMQX_HOST: "node1.emqx.dev"
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: "static"
+      EMQX_CLUSTER__STATIC__SEEDS: "[emqx@node1.emqx.dev, emqx@node2.emqx.dev]"
+      EMQX_CLUSTER__CORE_NODES: "['emqx@node1.emqx.dev', 'emqx@node2.emqx.dev']"
+      EMQX_NODE__DB_BACKEND: "rlog"
+      EMQX_NODE__DB_ROLE: "core"
+      EMQX_NODE__COOKIE: "${EMQX_ERLDIST_COOKIE}"
+    ports:
+      - "1883-1893:1883"
+      - "8883-8893:8883"
+      - "8083-8093:8083"
+      - "18083-18093:18083"
+    networks:
+      emqx-bridge:
+        aliases: [node1.emqx.dev]
+
+  emqx2:
+    <<: *emqx-node
+    environment:
+      <<: *emqx-node-env
+      EMQX_HOST: "node2.emqx.dev"
+    networks:
+      emqx-bridge:
+        aliases: [node2.emqx.dev]
+
+  emqx3:
+    <<: *emqx-node
+    environment:
+      <<: *emqx-node-env
+      EMQX_HOST: "node3.emqx.dev"
+      EMQX_NODE__DB_ROLE: "replicant"
+    networks:
+      emqx-bridge:
+        aliases: [node3.emqx.dev]
+
+  emqx4:
+    <<: *emqx-node
+    environment:
+      <<: *emqx-node-env
+      EMQX_HOST: "node4.emqx.dev"
+      EMQX_NODE__DB_ROLE: "replicant"
+    networks:
+      emqx-bridge:
+        aliases: [node4.emqx.dev]
+
+  emqx5:
+    <<: *emqx-node
+    environment:
+      <<: *emqx-node-env
+      EMQX_HOST: "node5.emqx.dev"
+      EMQX_NODE__DB_ROLE: "replicant"
+    networks:
+      emqx-bridge:
+        aliases: [node5.emqx.dev]

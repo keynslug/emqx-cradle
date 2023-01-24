@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+
+  redis-1: &redis-node
+    image: docker.io/bitnami/redis-cluster:${REDIS_TAG}
+    environment: &redis-node-env
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_NODES: "redis-1 redis-2 redis-3 redis-4 redis-5 redis-6"
+      REDIS_PORT_NUMBER: "${REDIS_PORT_NUMBER}"
+      REDIS_TLS_ENABLED: "yes"
+      REDIS_TLS_AUTH_CLIENTS: "no"
+      REDIS_TLS_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
+      REDIS_TLS_CERT_FILE: "${REDIS_TLS_CERT_FILE}"
+      REDIS_TLS_KEY_FILE: "${REDIS_TLS_KEY_FILE}"
+      REDIS_TLS_CA_FILE: "${REDIS_TLS_CA_FILE}"
+    # command: /opt/bitnami/scripts/redis-cluster/run.sh --loglevel verbose
+    volumes:
+      - ./etc/redis/tls:/etc/redis/tls
+    networks:
+      emqx-bridge:
+        aliases: ["${EMQX_HOSTNAME_REDIS_CLUSTER}"]
+
+  redis-2:
+    <<: *redis-node
+
+  redis-3:
+    <<: *redis-node
+
+  redis-4:
+    <<: *redis-node
+
+  redis-5:
+    <<: *redis-node
+
+  redis-6:
+    image: docker.io/bitnami/redis-cluster:${REDIS_TAG}
+    depends_on:
+      - redis-1
+      - redis-2
+      - redis-3
+      - redis-4
+      - redis-5
+    environment:
+      <<: *redis-node-env
+      REDISCLI_AUTH: "${REDIS_PASSWORD}"
+      REDIS_CLUSTER_REPLICAS: "1"
+      REDIS_CLUSTER_CREATOR: "yes"
+    # command: /opt/bitnami/scripts/redis-cluster/run.sh --loglevel verbose
+    volumes:
+      - ./etc/redis/tls:/etc/redis/tls
+    networks:
+      emqx-bridge:
+        aliases: ["${EMQX_HOSTNAME_REDIS_CLUSTER}"]
+    healthcheck:
+      test: |
+        # Convert `cluster info` output into shell variable assignments 
+        eval "$(
+          redis-cli -a "${REDIS_PASSWORD}" --no-auth-warning cluster info | \
+            grep "^cluster" | \
+            sed -r 's/(\w+):(\w+).*/\1=\2/'
+        )"
+        [ "$$cluster_state" = "ok" ]      || { echo "cluster state = $$cluster_state"; exit 1; }
+        [ "$$cluster_size" -gt 1 ]        || { echo "cluster size = $$cluster_size"; exit 2; }
+        [ "$$cluster_known_nodes" -eq 6 ] || { echo "known nodes = $$cluster_known_nodes"; exit 3; }
+      interval: 5s
+      retries: 3

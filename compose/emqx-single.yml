@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  emqx:
+    image: "docker.io/emqx/emqx-enterprise:${EMQX_EE_VERSION}"
+    environment:
+      - "EMQX_NODE__COOKIE=${EMQX_ERLDIST_COOKIE}"
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "8083:8083"
+      - "18083:18083"
+    networks:
+      - emqx-bridge

@@ -1,0 +1,68 @@
+version: "3"
+
+x-redis-node-env: &redis-node-env
+  REDIS_PASSWORD: "${REDIS_PASSWORD}"
+  REDIS_MASTER_PASSWORD: "${REDIS_PASSWORD}"
+  REDIS_PORT_NUMBER: "${REDIS_PORT_NUMBER}"
+  REDIS_TLS_ENABLED: "yes"
+  REDIS_TLS_AUTH_CLIENTS: "no"
+  REDIS_TLS_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
+  REDIS_TLS_CERT_FILE: "${REDIS_TLS_CERT_FILE}"
+  REDIS_TLS_KEY_FILE: "${REDIS_TLS_KEY_FILE}"
+  REDIS_TLS_CA_FILE: "${REDIS_TLS_CA_FILE}"
+
+services:
+  
+  redis-master:
+    image: docker.io/bitnami/redis:${REDIS_TAG}
+    environment:
+      <<: *redis-node-env
+      REDIS_REPLICATION_MODE: master
+    # command: /opt/bitnami/scripts/redis/run.sh --loglevel debug
+    volumes:
+       - ./etc/redis/tls:/etc/redis/tls
+    networks:
+      emqx-bridge:
+        aliases: ["${EMQX_HOSTNAME_REDIS}"]
+
+  redis-slave:
+    image: docker.io/bitnami/redis:${REDIS_TAG}
+    environment:
+      <<: *redis-node-env
+      REDIS_REPLICATION_MODE: slave
+      REDIS_MASTER_HOST: "redis-master"
+      REDIS_MASTER_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
+    # command: /opt/bitnami/scripts/redis/run.sh --loglevel debug
+    volumes:
+       - ./etc/redis/tls:/etc/redis/tls
+    networks:
+      emqx-bridge:
+        aliases: ["${EMQX_HOSTNAME_REDIS}"]
+
+  redis-sentinel-1: &redis-sentinel-node
+    image: docker.io/bitnami/redis-sentinel:${REDIS_TAG}
+    environment:
+      REDIS_MASTER_HOST: "redis-master"
+      REDIS_MASTER_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_SENTINEL_PORT_NUMBER: "${REDIS_SENTINEL_PORT_NUMBER}"
+      REDIS_SENTINEL_QUORUM: "2"
+      REDIS_SENTINEL_TLS_ENABLED: "yes"
+      REDIS_SENTINEL_TLS_AUTH_CLIENTS: "no"
+      REDIS_SENTINEL_TLS_CERT_FILE: "${REDIS_TLS_CERT_FILE}"
+      REDIS_SENTINEL_TLS_KEY_FILE: "${REDIS_TLS_KEY_FILE}"
+      REDIS_SENTINEL_TLS_CA_FILE: "${REDIS_TLS_CA_FILE}"
+    networks:
+      emqx-bridge:
+        aliases: ["${EMQX_HOSTNAME_REDIS_SENTINEL}"]
+    volumes:
+      - ./etc/redis/tls:/etc/redis/tls
+    depends_on:
+      - redis-master
+      - redis-slave
+
+  redis-sentinel-2:
+    <<: *redis-sentinel-node
+
+  redis-sentinel-3:
+    <<: *redis-sentinel-node
