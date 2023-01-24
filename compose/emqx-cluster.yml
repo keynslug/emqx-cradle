@@ -19,7 +19,7 @@ services:
       - "8084-8093:8083"
       - "18084-18093:18083"
     volumes:
-      - "./etc/redis/tls/:/opt/emqx/data/certs/redis/"
+      - "./etc/redis/tls/:/etc/redis/tls/"
       - "../config/extra.conf:/opt/emqx/etc/emqx-enterprise.conf"
       - "${EMQX_EXTRA_CONFIG_0:-/dev/null}:/opt/emqx/etc/extra-0.conf"
       - "${EMQX_EXTRA_CONFIG_1:-/dev/null}:/opt/emqx/etc/extra-1.conf"
