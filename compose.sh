@@ -66,10 +66,7 @@ case "${CONFIG_REDIS}" in
       ) ;;
   cluster )
     COMPOSE_CONFIGS+=("-f compose/redis-cluster.yml") ;
-    EMQX_CONFIGS+=(
-      "config/bridge-redis-cluster.conf"
-      "config/bridge-redis-cluster-tls.conf"
-      ) ;;
+    EMQX_CONFIGS+=("config/bridge-redis-cluster.conf") ;;
   sentinel )
     COMPOSE_CONFIGS+=("-f compose/redis-sentinel.yml") ;;
   * )
