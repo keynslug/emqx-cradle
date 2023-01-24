@@ -29,6 +29,7 @@ CONFIG_EMQX="emqx-single.yml"
 
 COMPOSE_CONFIGS=("-f compose/network.yml")
 COMPOSE_EXTRAENV=()
+EMQX_CONFIGS=()
 
 while true; do
   case "${1}" in
@@ -42,10 +43,12 @@ done
 
 case "${CONFIG_REDIS}" in
   single      )
-    COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;;
+    COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;
+    EMQX_CONFIGS+=("config/bridge-redis-single.conf") ;;
   single+mtls )
     COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;
-    COMPOSE_EXTRAENV+=("REDIS_TLS_AUTH_CLIENTS=yes") ;;
+    COMPOSE_EXTRAENV+=("REDIS_TLS_AUTH_CLIENTS=yes") ;
+    EMQX_CONFIGS+=("config/bridge-redis-single-mtls.conf") ;;
   cluster     )
     COMPOSE_CONFIGS+=("-f compose/redis-cluster.yml") ;;
   sentinel    )
@@ -59,6 +62,10 @@ case "${CONFIG_EMQX}" in
   cluster     ) COMPOSE_CONFIGS+=("-f compose/emqx-cluster.yml") ;;
   *           ) usage ;;
 esac
+
+for i in ${!EMQX_CONFIGS[@]}; do
+  COMPOSE_EXTRAENV+=("EMQX_EXTRA_CONFIG_${i}=../${EMQX_CONFIGS[$i]}")
+done
 
 echo "env ${COMPOSE_EXTRAENV[@]} ${COMPOSE} ${COMPOSE_CONFIGS[@]} up --remove-orphans \$@" | tee "up.sh"
 echo "env ${COMPOSE_EXTRAENV[@]} ${COMPOSE} ${COMPOSE_CONFIGS[@]} down \$@" | tee "down.sh"
