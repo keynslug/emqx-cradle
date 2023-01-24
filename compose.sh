@@ -10,7 +10,7 @@ COMPOSE=${COMPOSE:-"docker-compose"}
 
 USAGE=$(cat <<EOF
 Fire up a docker-compose setup with specific redis / emqx configuration.
-Usage: ${SCRIPTNAME} --redis=(single | single+mtls | cluster | sentinel) --emqx=(single | cluster)
+Usage: ${SCRIPTNAME} --redis=(single | single+mtls | single+toxiproxy | cluster | sentinel) --emqx=(single | cluster)
 EOF
 )
 
@@ -42,18 +42,28 @@ while true; do
 done
 
 case "${CONFIG_REDIS}" in
-  single      )
+  single )
     COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;
     EMQX_CONFIGS+=("config/bridge-redis-single.conf") ;;
   single+mtls )
     COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;
     COMPOSE_EXTRAENV+=("REDIS_TLS_AUTH_CLIENTS=yes") ;
     EMQX_CONFIGS+=("config/bridge-redis-single-mtls.conf") ;;
-  cluster     )
+  single+toxiproxy )
+    COMPOSE_CONFIGS+=(
+      "-f compose/redis-single.yml"
+      "-f compose/toxiproxy.yml") ;
+    EMQX_CONFIGS+=(
+      "config/bridge-redis-single.conf"
+      "config/bridge-redis-single-proxy.conf"
+      "config/bridge-redis-single-mtls.conf"
+      "config/bridge-redis-single-tls-proxy.conf"
+      ) ;;
+  cluster )
     COMPOSE_CONFIGS+=("-f compose/redis-cluster.yml") ;;
-  sentinel    )
+  sentinel )
     COMPOSE_CONFIGS+=("-f compose/redis-sentinel.yml") ;;
-  *           )
+  * )
     usage ;;
 esac
 
@@ -69,6 +79,7 @@ done
 
 echo "env ${COMPOSE_EXTRAENV[@]} ${COMPOSE} ${COMPOSE_CONFIGS[@]} up --remove-orphans \$@" | tee "up.sh"
 echo "env ${COMPOSE_EXTRAENV[@]} ${COMPOSE} ${COMPOSE_CONFIGS[@]} down \$@" | tee "down.sh"
+echo "env ${COMPOSE_EXTRAENV[@]} ${COMPOSE} ${COMPOSE_CONFIGS[@]} \$@" > "do.sh"
 
-chmod +x "up.sh" "down.sh"
-ls -la "up.sh" "down.sh"
+chmod +x "up.sh" "down.sh" "do.sh"
+ls -la "up.sh" "down.sh" "do.sh"

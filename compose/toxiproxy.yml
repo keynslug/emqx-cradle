@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.5.0
+    networks:
+      emqx-bridge:
+        aliases: ["redis-proxy"]
+    volumes:
+      - "./etc/toxiproxy.json:/config/toxiproxy.json"
+    ports:
+      - 8474:8474
+    command:
+      - "-host=0.0.0.0"
+      - "-config=/config/toxiproxy.json"

@@ -1,0 +1,14 @@
+[
+    {
+        "name": "redis-single-tcp",
+        "listen": "0.0.0.0:6379",
+        "upstream": "redis:6379",
+        "enabled": true
+    },
+    {
+        "name": "redis-single-tls",
+        "listen": "0.0.0.0:6389",
+        "upstream": "redis:6389",
+        "enabled": true
+    }
+]
