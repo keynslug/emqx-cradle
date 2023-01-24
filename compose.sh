@@ -10,7 +10,10 @@ COMPOSE=${COMPOSE:-"docker-compose"}
 
 USAGE=$(cat <<EOF
 Fire up a docker-compose setup with specific redis / emqx configuration.
-Usage: ${SCRIPTNAME} --redis=(single | single+mtls | single+toxiproxy | cluster | sentinel) --emqx=(single | cluster)
+Usage: ${SCRIPTNAME}
+  [ --redis=(single | single+mtls | single+toxiproxy | cluster | sentinel) ]
+  [ --emqx=(single | cluster) ]
+  [ --conf=<extra-emqx-config-file> ]
 EOF
 )
 
@@ -19,23 +22,25 @@ function usage {
     exit 127
 }
 
-TEMP=$(getopt -o "" --longoptions help,redis:,emqx: -n "$SCRIPTNAME" -- "$@")
+TEMP=$(getopt -o "" --longoptions help,redis:,emqx:,conf: -n "$SCRIPTNAME" -- "$@")
 [ $? != 0 ] && usage
 
 eval set -- "$TEMP"
 
-CONFIG_REDIS="redis-single.yml"
-CONFIG_EMQX="emqx-single.yml"
+CONFIG_REDIS="single"
+CONFIG_EMQX="single"
 
 COMPOSE_CONFIGS=("-f compose/network.yml")
 COMPOSE_EXTRAENV=()
 EMQX_CONFIGS=()
+EMQX_EXTRA_CONFIGS=()
 
 while true; do
   case "${1}" in
     --help  ) usage ;;
     --redis ) CONFIG_REDIS="${2}" ; shift 2 ;;
     --emqx  ) CONFIG_EMQX="${2}" ; shift 2 ;;
+    --conf  ) EMQX_EXTRA_CONFIGS+=("${2}") ; shift 2 ;;
     --      ) shift 1 ; break ;;
     *       ) usage ;;
   esac
@@ -72,6 +77,11 @@ case "${CONFIG_EMQX}" in
   cluster     ) COMPOSE_CONFIGS+=("-f compose/emqx-cluster.yml") ;;
   *           ) usage ;;
 esac
+
+for c in ${EMQX_EXTRA_CONFIGS[@]}; do
+  [ -f "${c}" ] || usage
+  EMQX_CONFIGS+=("${c}")
+done
 
 for i in ${!EMQX_CONFIGS[@]}; do
   COMPOSE_EXTRAENV+=("EMQX_EXTRA_CONFIG_${i}=../${EMQX_CONFIGS[$i]}")
