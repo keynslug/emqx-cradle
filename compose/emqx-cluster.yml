@@ -14,10 +14,10 @@ services:
       EMQX_NODE__DB_ROLE: "core"
       EMQX_NODE__COOKIE: "${EMQX_ERLDIST_COOKIE}"
     ports:
-      - "1883-1893:1883"
-      - "8883-8893:8883"
-      - "8083-8093:8083"
-      - "18083-18093:18083"
+      - "1884-1893:1883"
+      - "8884-8893:8883"
+      - "8084-8093:8083"
+      - "18084-18093:18083"
     volumes:
       - "./etc/redis/tls/:/opt/emqx/data/certs/redis/"
       - "../config/extra.conf:/opt/emqx/etc/emqx-enterprise.conf"
@@ -65,6 +65,11 @@ services:
       <<: *emqx-node-env
       EMQX_HOST: "node5.emqx.dev"
       EMQX_NODE__DB_ROLE: "replicant"
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "8083:8083"
+      - "18083:18083"
     networks:
       emqx-bridge:
         aliases: [node5.emqx.dev]
