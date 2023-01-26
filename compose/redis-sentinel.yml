@@ -4,6 +4,7 @@ x-redis-node-env: &redis-node-env
   REDIS_PASSWORD: "${REDIS_PASSWORD}"
   REDIS_MASTER_PASSWORD: "${REDIS_PASSWORD}"
   REDIS_PORT_NUMBER: "${REDIS_PORT_NUMBER}"
+  REDIS_MASTER_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
   REDIS_TLS_ENABLED: "yes"
   REDIS_TLS_AUTH_CLIENTS: "no"
   REDIS_TLS_PORT_NUMBER: "${REDIS_TLS_PORT_NUMBER}"
@@ -25,7 +26,7 @@ services:
       emqx-bridge:
         aliases: ["${EMQX_HOSTNAME_REDIS}"]
 
-  redis-slave:
+  redis-slave-1: &redis-slave-node
     image: docker.io/bitnami/redis:${REDIS_TAG}
     environment:
       <<: *redis-node-env
@@ -39,6 +40,9 @@ services:
       emqx-bridge:
         aliases: ["${EMQX_HOSTNAME_REDIS}"]
 
+  redis-slave-2:
+    <<: *redis-slave-node
+
   redis-sentinel-1: &redis-sentinel-node
     image: docker.io/bitnami/redis-sentinel:${REDIS_TAG}
     environment:
@@ -48,6 +52,8 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
       REDIS_SENTINEL_PORT_NUMBER: "${REDIS_SENTINEL_PORT_NUMBER}"
       REDIS_SENTINEL_QUORUM: "2"
+      REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS: "${REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS}"
+      REDIS_SENTINEL_FAILOVER_TIMEOUT: "${REDIS_SENTINEL_FAILOVER_TIMEOUT}"
       REDIS_SENTINEL_TLS_ENABLED: "yes"
       REDIS_SENTINEL_TLS_AUTH_CLIENTS: "no"
       REDIS_SENTINEL_TLS_CERT_FILE: "${REDIS_TLS_CERT_FILE}"
@@ -60,7 +66,8 @@ services:
       - ./etc/redis/tls:/etc/redis/tls
     depends_on:
       - redis-master
-      - redis-slave
+      - redis-slave-1
+      - redis-slave-2
 
   redis-sentinel-2:
     <<: *redis-sentinel-node
