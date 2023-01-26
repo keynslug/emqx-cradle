@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  mosquitto:
+    image: "docker.io/library/eclipse-mosquitto:${MOSQUITTO_TAG}"
+    volumes:
+      - "./${MOSQUITTO_CONFIG:-etc/mosquitto/mosquitto.conf}:/mosquitto/config/mosquitto.conf:ro"
+      - "./etc/mosquitto/tls/:/mosquitto/tls/:ro"
+    ports:
+      - "31883:1883"
+      - "38883:8883"
+    networks:
+      - emqx-bridge

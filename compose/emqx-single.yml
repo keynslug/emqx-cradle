@@ -12,6 +12,7 @@ services:
       - "18083:18083"
     volumes:
       - "./etc/redis/tls/:/etc/redis/tls/"
+      - "./etc/mosquitto/tls/:/etc/mosquitto/tls/"
       - "../config/extra.conf:/opt/emqx/etc/emqx-enterprise.conf"
       - "${EMQX_EXTRA_CONFIG_0:-/dev/null}:/opt/emqx/etc/extra-0.conf"
       - "${EMQX_EXTRA_CONFIG_1:-/dev/null}:/opt/emqx/etc/extra-1.conf"
