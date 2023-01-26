@@ -13,10 +13,11 @@ services:
     volumes:
       - "./etc/redis/tls/:/etc/redis/tls/"
       - "../config/extra.conf:/opt/emqx/etc/emqx-enterprise.conf"
-      - "${EMQX_EXTRA_CONFIG_0:-/dev/null}:/opt/emqx/etc/extra/0.conf"
-      - "${EMQX_EXTRA_CONFIG_1:-/dev/null}:/opt/emqx/etc/extra/1.conf"
-      - "${EMQX_EXTRA_CONFIG_2:-/dev/null}:/opt/emqx/etc/extra/2.conf"
-      - "${EMQX_EXTRA_CONFIG_3:-/dev/null}:/opt/emqx/etc/extra/3.conf"
-      - "${EMQX_EXTRA_CONFIG_4:-/dev/null}:/opt/emqx/etc/extra/4.conf"
+      - "${EMQX_EXTRA_CONFIG_0:-/dev/null}:/opt/emqx/etc/extra-0.conf"
+      - "${EMQX_EXTRA_CONFIG_1:-/dev/null}:/opt/emqx/etc/extra-1.conf"
+      - "${EMQX_EXTRA_CONFIG_2:-/dev/null}:/opt/emqx/etc/extra-2.conf"
+      - "${EMQX_EXTRA_CONFIG_3:-/dev/null}:/opt/emqx/etc/extra-3.conf"
+      - "${EMQX_EXTRA_CONFIG_4:-/dev/null}:/opt/emqx/etc/extra-4.conf"
     networks:
-      - emqx-bridge
+      emqx-bridge:
+        aliases: [emqx.dev]

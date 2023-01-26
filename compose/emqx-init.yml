@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  emqx-init:
+    image: "registry.gitlab.com/gitlab-ci-utils/curl-jq:1.1.0"
+    restart: "on-failure"
+    volumes:
+      - "./scripts/:/scripts/"
+    environment:
+      EMQX_ADMIN_PASSWORD: "${EMQX_ADMIN_PASSWORD}"
+    command: sh -f /scripts/change-dashboard-password.sh
+    networks:
+      - emqx-bridge

@@ -28,11 +28,7 @@ services:
       - "${EMQX_EXTRA_CONFIG_4:-/dev/null}:/opt/emqx/etc/extra-4.conf"
     networks:
       emqx-bridge:
-        aliases: [node1.emqx.dev]
-    healthcheck:
-      test: emqx_ctl status
-      interval: 8s
-      retries: 5
+        aliases: [node1.emqx.dev, emqx.dev]
 
   emqx2:
     <<: *emqx-node
@@ -41,7 +37,7 @@ services:
       EMQX_HOST: "node2.emqx.dev"
     networks:
       emqx-bridge:
-        aliases: [node2.emqx.dev]
+        aliases: [node2.emqx.dev, emqx.dev]
 
   emqx3:
     <<: *emqx-node
@@ -51,7 +47,7 @@ services:
       EMQX_NODE__DB_ROLE: "replicant"
     networks:
       emqx-bridge:
-        aliases: [node3.emqx.dev]
+        aliases: [node3.emqx.dev, emqx.dev]
 
   emqx4:
     <<: *emqx-node
@@ -61,7 +57,7 @@ services:
       EMQX_NODE__DB_ROLE: "replicant"
     networks:
       emqx-bridge:
-        aliases: [node4.emqx.dev]
+        aliases: [node4.emqx.dev, emqx.dev]
 
   emqx5:
     <<: *emqx-node
@@ -76,28 +72,4 @@ services:
       - "18083:18083"
     networks:
       emqx-bridge:
-        aliases: [node5.emqx.dev]
-
-  emqx-init:
-    image: "registry.gitlab.com/gitlab-ci-utils/curl-jq:1.1.0"
-    restart: "on-failure"
-    depends_on:
-      emqx1: {condition: service_healthy}
-      emqx2: {condition: service_healthy}
-      emqx3: {condition: service_healthy}
-      emqx4: {condition: service_healthy}
-      emqx5: {condition: service_healthy}
-    command:
-      - /bin/bash
-      - -c
-      - |
-        curl -sSf 'http://emqx1:18083/api/v5/login' \
-          -H 'Authorization: Bearer undefined' \
-          -H 'Content-Type: application/json' \
-          --data-raw '{"username":"admin","password":"public"}' > login.json
-        curl -sSf 'http://emqx1:18083/api/v5/users/admin/change_pwd' \
-          -H "Authorization: Bearer $(cat login.json | jq -r .token)" \
-          -H 'Content-Type: application/json' \
-          --data-raw '{"new_pwd":"${EMQX_ADMIN_PASSWORD}","old_pwd":"public"}'
-    networks:
-      - emqx-bridge
+        aliases: [node5.emqx.dev, emqx.dev]

@@ -75,8 +75,8 @@ case "${CONFIG_REDIS}" in
 esac
 
 case "${CONFIG_EMQX}" in
-  single      ) COMPOSE_CONFIGS+=("-f compose/emqx-single.yml") ;;
-  cluster     ) COMPOSE_CONFIGS+=("-f compose/emqx-cluster.yml") ;;
+  single      ) COMPOSE_CONFIGS+=("-f compose/emqx-single.yml" "-f compose/emqx-init.yml") ;;
+  cluster     ) COMPOSE_CONFIGS+=("-f compose/emqx-cluster.yml" "-f compose/emqx-init.yml") ;;
   *           ) usage ;;
 esac
 
