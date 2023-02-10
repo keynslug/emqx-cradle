@@ -28,7 +28,6 @@ TEMP=$(getopt -o "" --longoptions help,redis:,mosquitto:,emqx:,conf: -n "$SCRIPT
 
 eval set -- "$TEMP"
 
-CONFIG_REDIS="single"
 CONFIG_EMQX="single"
 
 COMPOSE_CONFIGS=("-f compose/network.yml")
@@ -48,7 +47,7 @@ while true; do
   esac
 done
 
-case "${CONFIG_REDIS}" in
+case "${CONFIG_REDIS:-none}" in
   single )
     COMPOSE_CONFIGS+=("-f compose/redis-single.yml") ;
     EMQX_CONFIGS+=("config/bridge-redis-single.conf") ;;
@@ -72,15 +71,19 @@ case "${CONFIG_REDIS}" in
   sentinel )
     COMPOSE_CONFIGS+=("-f compose/redis-sentinel.yml") ;
     EMQX_CONFIGS+=("config/bridge-redis-sentinel-tls.conf") ;;
+  none )
+    ;;
   * )
     usage ;;
 esac
 
-case "${CONFIG_MOSQUITTO}" in
+case "${CONFIG_MOSQUITTO:-none}" in
   single+mtls )
     COMPOSE_CONFIGS+=("-f compose/mosquitto-single.yml") ;
     COMPOSE_EXTRAENV+=("MOSQUITTO_CONFIG=etc/mosquitto/mosquitto-tls.conf") ;
     EMQX_CONFIGS+=("config/bridge-mosquitto-mtls.conf") ;;
+  none )
+    ;;
   * )
     usage ;;
 esac
