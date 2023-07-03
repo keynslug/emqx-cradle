@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  mysql: &mysql-shared
+    image: mysql:${MYSQL_TAG}
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: mqtt
+    command:
+      --bind-address "::"
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --lower-case-table-names=1
+      --max-allowed-packet=128M
+      --max-prepared-stmt-count=1024
+    networks:
+      - emqx-bridge
+
+  mysql-init:
+    <<: *mysql-shared
+    restart: on-failure
+    ports: []
+    command:
+      - sh
+      - -c
+      - |
+        mysql --host=mysql --password=$$MYSQL_ROOT_PASSWORD $$MYSQL_DATABASE -e '
+          CREATE TABLE IF NOT EXISTS t_mqtt_msg (
+            msgid VARCHAR(255) NOT NULL,
+            topic VARCHAR(255) NOT NULL,
+            qos SMALLINT,
+            payload VARBINARY(4095),
+            arrived DATETIME NOT NULL,
+            PRIMARY KEY (msgid)
+          )
+        '
