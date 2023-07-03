@@ -1,0 +1,25 @@
+services:
+  prometheus:
+    image: bitnami/prometheus:${PROMETHEUS_TAG}
+    volumes:
+      - "./etc/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml:ro"
+    networks:
+      - emqx-bridge
+  
+  grafana:
+    image: grafana/grafana:${GRAFANA_TAG}
+    ports:
+      - "3000:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    volumes:
+      - "./etc/grafana/provisioning/:/etc/grafana/provisioning/:ro"
+      - "grafana-data:/var/lib/grafana"
+    networks:
+      - emqx-bridge
+
+volumes:
+  grafana-data:
+    driver: local
